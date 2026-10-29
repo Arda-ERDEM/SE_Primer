@@ -1,6 +1,6 @@
-# SE Primer (`HBYS.Primer.Web`)
+# HBYS.Web
 
-**SE Primer**, kritik sağlık bilişimi altyapılarında görev yapan yazılım mühendislerinin kriz anındaki **ödünleşim (trade-off)** ve **nedensellik (causality)** muhakemesini simüle etmek üzere geliştirilmiş, deterministik sonlu durum makinesi (FSM) tabanlı bir karar destek ve Sokratik sorgulama sistemidir.
+**HBYS.Web**, kritik sağlık bilişimi altyapılarında görev yapan yazılım mühendislerinin kriz anındaki **ödünleşim (trade-off)** ve **nedensellik (causality)** muhakemesini simüle etmek üzere geliştirilmiş, deterministik sonlu durum makinesi (FSM) tabanlı bir karar destek ve Sokratik sorgulama sistemidir.
 
 Mimari kurgu, Neal Stephenson’ın *The Diamond Age* eserindeki okuyucunun bağlamına uyum sağlayan etkileşimli rehber (*Primer*) kavramını, Ian Sommerville’in *Software Engineering (Bölüm 5: Durum Makineleri)* prensipleri ve 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) teknik tedbir standartlarıyla birleştirir.
 

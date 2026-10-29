@@ -107,7 +107,7 @@ export function App() {
         <header className="blazor-top-row sticky top-0 z-30 px-3 py-2.5 text-white flex items-center justify-between">
           <div>
             <div className="text-sm font-bold tracking-tight">
-              HBYS.Primer.Web
+              HBYS.Web
             </div>
             <div className="text-[11px] text-[#cfd8dc] font-mono">
               Modül: YZM301.KrizSimulasyonu
