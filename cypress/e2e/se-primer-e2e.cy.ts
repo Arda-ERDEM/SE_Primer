@@ -147,14 +147,11 @@ describe('YZM301 SE Primer · Tüm Karar Yolları ve Kişiselleştirme E2E Test 
 
     // Test atlandığı için SON B · KÖTÜ oluştuğunu doğrula
     cy.get('[data-testid="ending-banner-bad"]').should('be.visible');
-    cy.wait(1500);
+    cy.wait(2000);
 
-    // 25 Puanlık Tutor Eval (20 Cevap) Modalını aç ve doğrula
-    cy.get('[data-testid="open-eval-from-ending-btn"]').click();
-    cy.get('[data-testid="eval-inspector-modal"]').should('be.visible');
-    cy.get('[data-testid="eval-inspector-modal"]').should('contain.text', '20 Cevap');
-    cy.get('[data-testid="eval-inspector-modal"]').should('contain.text', 'PASS_SOCRATIC');
-    cy.wait(3000);
-    cy.get('[data-testid="close-eval-modal"]').click();
+    // Yeni oturum başlat butonuna tıklayarak kalibrasyon ekranına dönüşü doğrula
+    cy.get('[data-testid="replay-simulation-btn"]').click();
+    cy.get('[data-testid="screen-calibration"]').should('be.visible');
+    cy.wait(2000);
   });
 });

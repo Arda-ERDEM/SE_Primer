@@ -17,7 +17,6 @@ interface PostMortemViewProps {
   decisions: DecisionRecord[];
   telemetry: TelemetrySnapshot;
   onRestart: () => void;
-  onOpenEvalModal: () => void;
 }
 
 export const PostMortemView: React.FC<PostMortemViewProps> = ({
@@ -26,7 +25,6 @@ export const PostMortemView: React.FC<PostMortemViewProps> = ({
   decisions,
   telemetry,
   onRestart,
-  onOpenEvalModal,
 }) => {
   const isGoodEnding = ending === 'SON_A_IYI';
   const levelMeta = EXPERIENCE_LEVELS.find((l) => l.id === profile.level)!;
@@ -146,7 +144,7 @@ export const PostMortemView: React.FC<PostMortemViewProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Button */}
       <div className="space-y-2">
         <button
           type="button"
@@ -155,15 +153,6 @@ export const PostMortemView: React.FC<PostMortemViewProps> = ({
           className="w-full blazor-btn-primary font-bold text-xs py-2.5 px-4 cursor-pointer"
         >
           Yeni Oturum Başlat (Farklı Parametrelerle)
-        </button>
-
-        <button
-          type="button"
-          data-testid="open-eval-from-ending-btn"
-          onClick={onOpenEvalModal}
-          className="w-full bg-[#6c757d] hover:bg-[#5c636a] text-white font-semibold text-xs py-2 px-4 rounded-[3px] cursor-pointer"
-        >
-          Sokratik Tutor Değerlendirme Tablosunu Aç (20 Kayıt)
         </button>
       </div>
     </div>

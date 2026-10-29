@@ -12,13 +12,11 @@ import { buildDecisionOutcome } from './domain/incidentMatrix';
 import { CalibrationView } from './components/CalibrationView';
 import { IncidentStageView } from './components/IncidentStageView';
 import { PostMortemView } from './components/PostMortemView';
-import { EvalInspectorModal } from './components/EvalInspectorModal';
 
 export function App() {
   const [machine, setMachine] = useState<PrimerMachineState>(() =>
     createInitialMachineState()
   );
-  const [isEvalOpen, setIsEvalOpen] = useState<boolean>(false);
 
   const handleProfileChange = (updatedProfile: CalibrationProfile) => {
     setMachine((prev) => ({
@@ -116,17 +114,8 @@ export function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              data-testid="open-eval-modal-btn"
-              onClick={() => setIsEvalOpen(true)}
-              className="bg-[#ffffff]/15 hover:bg-[#ffffff]/25 border border-white/30 text-white px-2.5 py-1 text-xs font-semibold rounded-[3px] cursor-pointer"
-            >
-              Eval Kayıtları (20)
-            </button>
-
-            {machine.phase !== 'S0_CALIBRATION' && (
+          {machine.phase !== 'S0_CALIBRATION' && (
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 data-testid="header-reset-btn"
@@ -135,8 +124,8 @@ export function App() {
               >
                 Sıfırla
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </header>
 
         {/* Sub-header Breadcrumb Strip (Classic Bootstrap / AdminLTE / Blazor style) */}
@@ -179,7 +168,6 @@ export function App() {
               decisions={machine.decisions}
               telemetry={machine.telemetry}
               onRestart={handleRestart}
-              onOpenEvalModal={() => setIsEvalOpen(true)}
             />
           )}
         </main>
@@ -190,12 +178,6 @@ export function App() {
           <span>6698 KVKK Denetim Modu</span>
         </footer>
       </div>
-
-      {/* Tutor Eval Modal */}
-      <EvalInspectorModal
-        isOpen={isEvalOpen}
-        onClose={() => setIsEvalOpen(false)}
-      />
     </div>
   );
 }
