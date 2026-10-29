@@ -10,7 +10,7 @@
 | :--- | :--- | :---: |
 | **1. GitHub Kaynak Kod Deposu** | [https://github.com/Arda-ERDEM/SE_Primer](https://github.com/Arda-ERDEM/SE_Primer) | ✅ Hazır |
 | **2. Google AI Studio / Canlı Mobil Uygulama** | `[AI Studio Uygulama Linkinizi Buraya Ekleyin]` | ✅ Mobil Uyumlu (`390x844`) |
-| **3. Cypress E2E 60 sn Demo Videosu** | `[Demo Video Linkinizi Buraya Ekleyin]` *(Yerel kayıt: `cypress/videos/se-primer-e2e.cy.ts.mp4`)* | ✅ Tüm Yollar E2E Testli |
+| **3. Cypress E2E 60 sn Demo Videosu** | [Cypress E2E Demo Videosunu İzle / İndir (49 sn MP4)](https://github.com/Arda-ERDEM/SE_Primer/raw/main/cypress/videos/se-primer-e2e.cy.ts.mp4) | ✅ Tüm Yollar E2E Testli |
 
 ---
 
