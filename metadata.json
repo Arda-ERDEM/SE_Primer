@@ -1,5 +1,8 @@
 {
   "name": "SE Primer: Klinik Nöbet Konsolu (YZM301)",
   "description": "Saat 08:00 hastane randevu sistemi krizinde kişiye uyum sağlayan (Seviye, Rol, Hedef) yazılım mühendisliği karar simülasyonu ve Sokratik AI Tutor.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
