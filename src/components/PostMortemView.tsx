@@ -10,16 +10,6 @@ import {
   EXPERIENCE_LEVELS,
   PRIMARY_GOALS,
 } from '../domain/incidentMatrix';
-import {
-  AlertOctagon,
-  Award,
-  CheckCircle2,
-  ClipboardCheck,
-  RotateCcw,
-  ShieldAlert,
-  ShieldCheck,
-  XCircle,
-} from 'lucide-react';
 
 interface PostMortemViewProps {
   ending: EndingType;
@@ -44,133 +34,112 @@ export const PostMortemView: React.FC<PostMortemViewProps> = ({
   const goalMeta = PRIMARY_GOALS.find((g) => g.id === profile.goal)!;
 
   return (
-    <div className="space-y-4 pb-6" data-testid="screen-ending">
-      {/* Main Outcome Banner (Matches Slide 2 exact wording + detailed analysis) */}
+    <div className="space-y-3 pb-4" data-testid="screen-ending">
+      {/* Main Outcome Alert Panel */}
       <div
         data-testid={isGoodEnding ? 'ending-banner-good' : 'ending-banner-bad'}
-        className={`rounded-2xl border-2 p-5 space-y-3 shadow-xl ${
+        className={`p-3.5 border border-l-4 rounded-[3px] space-y-2.5 ${
           isGoodEnding
-            ? 'border-emerald-500/70 bg-gradient-to-br from-emerald-950/50 via-[#111827] to-[#0B1120]'
-            : 'border-rose-500/70 bg-gradient-to-br from-rose-950/50 via-[#111827] to-[#0B1120]'
+            ? 'bg-[#d1e7dd] border-[#badbcc] border-l-[#198754] text-[#0f5132]'
+            : 'bg-[#f8d7da] border-[#f5c2c7] border-l-[#dc3545] text-[#842029]'
         }`}
       >
         <div className="flex items-center justify-between">
           <span
             data-testid="ending-code-badge"
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-mono font-extrabold ${
-              isGoodEnding
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+            className={`px-2 py-0.5 text-xs font-mono font-bold text-white rounded-[2px] ${
+              isGoodEnding ? 'bg-[#198754]' : 'bg-[#dc3545]'
             }`}
           >
-            {isGoodEnding ? (
-              <>
-                <Award className="w-4 h-4" />
-                SON A · İYİ
-              </>
-            ) : (
-              <>
-                <AlertOctagon className="w-4 h-4" />
-                SON B · KÖTÜ
-              </>
-            )}
+            {isGoodEnding ? 'SON A · İYİ' : 'SON B · KÖTÜ'}
           </span>
-          <span className="font-mono text-xs text-slate-400">
-            Saat {telemetry.incidentClock}
+          <span className="font-mono text-xs font-bold">
+            Kapanış Saati: {telemetry.incidentClock}
           </span>
         </div>
 
         <h1
           data-testid="ending-headline"
-          className="text-lg font-extrabold text-white leading-snug"
+          className="text-base font-bold leading-snug"
         >
           {isGoodEnding
             ? '08:25 sistem ayakta, veri güvende'
             : 'Sistem ayakta ama KVKK ihlali (veya Kritik Hasar)'}
         </h1>
 
-        <p className="text-xs text-slate-200 leading-relaxed">
+        <p className="text-xs leading-normal">
           {isGoodEnding
-            ? 'Tebrikler! Poliklinik kapısındaki 300 hastanın randevu akışı saat 08:25 itibarıyla tamamen açıldı. Duman testiyle yapılandırma hatasını canlıya çıkmadan yakaladın ve hasta verilerini maskeleyerek 6698 sayılı KVKK disiplinini %100 korudun.'
+            ? 'Poliklinik girişindeki 300 hastanın randevu akışı saat 08:25 itibarıyla normale döndü. Duman testiyle yapılandırma hatası canlıya çıkmadan yakalandı ve hasta kayıtları SHA-256 ile maskelenerek 6698 sayılı KVKK uyumu korundu.'
             : telemetry.kvkkCompliant
-            ? 'Kriz sırasında doğrulama (duman testi) adımını atladığın için canlı ortamda öngörülemeyen yapılandırma çöküşü yaşandı; kuyruktaki hasta mağduriyeti katlandı ve sistem bütünlüğü hasar gördü.'
-            : 'Sistem teknik olarak ayağa kalkmış olsa da, hata loglarındaki gerçek hasta adlarını ve özel nitelikli tanı kodlarını maskelemeden paylaştığın için 6698 sayılı KVKK Madde 12 kapsamında kritik veri ihlali oluştu!'}
+            ? 'Kriz sırasında doğrulama (smoke test) adımı atlandığı için canlı ortamda yapılandırma hatası patladı ve randevu kuyruğunda veri tutarsızlığı oluştu.'
+            : 'Sistem ayağa kalkmış olsa da, hata loglarındaki hasta adları ve tanı kodları maskelenmeden paylaşıldığı için 6698 sayılı KVKK Madde 12 kapsamında veri ihlali gerçekleşti.'}
         </p>
 
-        {/* Final Scorecard */}
-        <div className="grid grid-cols-3 gap-2 pt-2">
-          <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-2.5 text-center">
-            <div className="text-[10px] text-slate-400">Çözüm Saati</div>
-            <div className="text-sm font-mono font-extrabold text-white">08:25</div>
-          </div>
-          <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-2.5 text-center">
-            <div className="text-[10px] text-slate-400">Kalan Kuyruk</div>
-            <div className="text-sm font-mono font-extrabold text-cyan-300">
-              {telemetry.waitingPatients} Hasta
-            </div>
-          </div>
-          <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-2.5 text-center">
-            <div className="text-[10px] text-slate-400">KVKK Durumu</div>
-            <div className="text-xs font-mono font-extrabold flex items-center justify-center gap-1 mt-0.5">
-              {telemetry.kvkkCompliant ? (
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> GÜVENDE
-                </span>
-              ) : (
-                <span className="text-rose-400 flex items-center gap-1">
-                  <ShieldAlert className="w-3.5 h-3.5" /> İHLAL!
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Summary Table */}
+        <table className="w-full border-collapse border border-[#adb5bd] bg-white text-[#212529] text-xs text-center">
+          <thead>
+            <tr className="bg-[#f8f9fa] font-semibold">
+              <th className="border border-[#dee2e6] py-1 px-2">Çözüm Saati</th>
+              <th className="border border-[#dee2e6] py-1 px-2">Bekleyen Kuyruk</th>
+              <th className="border border-[#dee2e6] py-1 px-2">KVKK Durumu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-[#dee2e6] py-1.5 px-2 font-mono font-bold">
+                08:25
+              </td>
+              <td className="border border-[#dee2e6] py-1.5 px-2 font-mono font-bold">
+                {telemetry.waitingPatients} Hasta
+              </td>
+              <td className="border border-[#dee2e6] py-1.5 px-2 font-mono font-bold">
+                {telemetry.kvkkCompliant ? (
+                  <span className="text-[#198754]">GÜVENDE</span>
+                ) : (
+                  <span className="text-[#dc3545]">İHLAL!</span>
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      {/* Persona Summary */}
-      <div className="rounded-2xl border border-slate-800 bg-[#111827] p-3.5 text-xs space-y-1">
-        <div className="font-bold text-slate-200">Oynanan Mühendis Profili:</div>
-        <div className="text-slate-400">
-          Seviye: <strong className="text-white">{levelMeta.title}</strong> · Rol:{' '}
-          <strong className="text-cyan-300">{roleMeta.title}</strong> · Hedef:{' '}
-          <strong className="text-amber-300">{goalMeta.title}</strong>
-        </div>
+      {/* Operator Profile Info */}
+      <div className="blazor-card p-2.5 text-xs bg-[#f8f9fa]">
+        <strong>Oturum Parametreleri: </strong>
+        Seviye: {levelMeta.title} | Rol: {roleMeta.title} | Hedef: {goalMeta.title}
       </div>
 
-      {/* 3-Step Decision Audit Trail */}
-      <div className="rounded-2xl border border-slate-800 bg-[#111827] p-4 space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-          Nöbet Karar Zinciri (Ne Oldu · Neden Oldu)
-        </h2>
+      {/* 3-Step Audit Trail Card */}
+      <div className="blazor-card border-t-[3px] border-t-[#052767]">
+        <div className="blazor-card-header text-xs">
+          Karar Dökümü ve Kök Neden Kayıtları (1 → 2 → 3)
+        </div>
 
-        <div className="space-y-2.5">
+        <div className="p-3 space-y-2.5">
           {decisions.map((d, idx) => (
             <div
               key={d.stageId}
               data-testid={`summary-step-${idx + 1}`}
-              className="rounded-xl border border-slate-800 bg-slate-900/75 p-3 space-y-1.5 text-xs"
+              className="border border-[#ced4da] bg-[#f8f9fa] p-2.5 rounded-[2px] space-y-1 text-xs"
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono font-bold text-cyan-300">{d.stageTitle}</span>
+              <div className="flex items-center justify-between border-b border-[#dee2e6] pb-1">
+                <span className="font-mono font-bold text-[#052767]">
+                  {d.stageTitle}
+                </span>
                 <span
-                  className={`inline-flex items-center gap-1 rounded px-2 py-0.5 font-mono text-[10px] font-bold ${
-                    d.chosenKey === 'A'
-                      ? 'bg-emerald-500/20 text-emerald-300'
-                      : 'bg-rose-500/20 text-rose-300'
+                  className={`px-1.5 py-0.5 font-mono text-[10px] font-bold text-white rounded-[2px] ${
+                    d.chosenKey === 'A' ? 'bg-[#198754]' : 'bg-[#dc3545]'
                   }`}
                 >
-                  {d.chosenKey === 'A' ? (
-                    <CheckCircle2 className="w-3 h-3" />
-                  ) : (
-                    <XCircle className="w-3 h-3" />
-                  )}
                   {d.chosenLabel}
                 </span>
               </div>
-              <p className="text-slate-200 leading-relaxed">
-                <strong className="text-slate-400">Ne Oldu:</strong> {d.whatHappened}
+              <p className="text-[#212529]">
+                <strong>Ne Oldu:</strong> {d.whatHappened}
               </p>
-              <p className="text-amber-200/90 leading-relaxed">
-                <strong className="text-amber-400">Neden Oldu:</strong> {d.whyItHappened}
+              <p className="text-[#495057]">
+                <strong>Neden Oldu:</strong> {d.whyItHappened}
               </p>
             </div>
           ))}
@@ -183,20 +152,18 @@ export const PostMortemView: React.FC<PostMortemViewProps> = ({
           type="button"
           data-testid="replay-simulation-btn"
           onClick={onRestart}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm py-3.5 px-4 shadow-lg shadow-emerald-500/20 transition cursor-pointer"
+          className="w-full blazor-btn-primary font-bold text-xs py-2.5 px-4 cursor-pointer"
         >
-          <RotateCcw className="w-4 h-4" />
-          <span>Farklı Seviye / Rol ile Yeniden Oynat</span>
+          Yeni Oturum Başlat (Farklı Parametrelerle)
         </button>
 
         <button
           type="button"
           data-testid="open-eval-from-ending-btn"
           onClick={onOpenEvalModal}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 font-bold text-xs py-3 px-4 transition cursor-pointer"
+          className="w-full bg-[#6c757d] hover:bg-[#5c636a] text-white font-semibold text-xs py-2 px-4 rounded-[3px] cursor-pointer"
         >
-          <ClipboardCheck className="w-4 h-4" />
-          <span>Tutor Eval Raporunu İncele (20 Öğrenci Cevabı · 25 Puan)</span>
+          Sokratik Tutor Değerlendirme Tablosunu Aç (20 Kayıt)
         </button>
       </div>
     </div>

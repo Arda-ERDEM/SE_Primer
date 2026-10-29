@@ -2,25 +2,45 @@
 
 @layer base {
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #090D16;
-    color: #F8FAFC;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e9ecef;
+    color: #212529;
+    font-size: 14px;
+    line-height: 1.45;
   }
 
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: Consolas, "Courier New", monospace;
   }
 }
 
-@keyframes pulseSlow {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.45;
-  }
+.blazor-top-row {
+  background-image: linear-gradient(90deg, #052767 0%, #3a0647 75%);
+  border-bottom: 1px solid #d6d5d5;
 }
 
-.animate-pulse-slow {
-  animation: pulseSlow 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.blazor-card {
+  background-color: #ffffff;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.blazor-card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ced4da;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: #343a40;
+}
+
+.blazor-btn-primary {
+  background-color: #1b6ec2;
+  border: 1px solid #1861ac;
+  color: #ffffff;
+  border-radius: 3px;
+}
+
+.blazor-btn-primary:hover {
+  background-color: #155a9e;
 }

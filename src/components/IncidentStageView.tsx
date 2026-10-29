@@ -16,20 +16,6 @@ import {
   askSocraticTutor,
   TutorMessage,
 } from '../services/socraticMentor';
-import {
-  AlertTriangle,
-  ArrowRight,
-  Bot,
-  CheckCircle2,
-  Clock,
-  HelpCircle,
-  Lightbulb,
-  Send,
-  ShieldAlert,
-  ShieldCheck,
-  Terminal,
-  Users,
-} from 'lucide-react';
 
 interface IncidentStageViewProps {
   stageId: DecisionStageId;
@@ -60,7 +46,6 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
   const goalMeta = PRIMARY_GOALS.find((g) => g.id === profile.goal)!;
   const levelMeta = EXPERIENCE_LEVELS.find((l) => l.id === profile.level)!;
 
-  // Sahne değiştiğinde sayacı ve Sokratik Tutor açılış mesajını sıfırla
   useEffect(() => {
     setSecondsLeft(60);
     setStudentInput('');
@@ -74,7 +59,6 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
     ]);
   }, [stageId]);
 
-  // Deneyimli modda 60 saniyelik geri sayım (Karar verildiğinde durur)
   useEffect(() => {
     if (!isVeteran || activeCausalReview) return;
 
@@ -122,346 +106,318 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
   };
 
   return (
-    <div className="space-y-3.5 pb-6" data-testid={`screen-stage-${stage.stepNumber}`}>
-      {/* Top Telemetry & Persona Strip */}
-      <div className="rounded-2xl border border-slate-800 bg-[#111827] p-3 space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-500/15 px-2.5 py-1 text-xs font-mono font-bold text-cyan-300 border border-cyan-500/30"
-            data-testid="stage-badge"
-          >
-            {stage.badge} ({stage.stepNumber}/3)
+    <div className="space-y-3 pb-4" data-testid={`screen-stage-${stage.stepNumber}`}>
+      {/* Classic Blazor / Bootstrap Telemetry Table Card */}
+      <div className="blazor-card border-t-[3px] border-t-[#052767]">
+        <div className="blazor-card-header flex items-center justify-between text-xs">
+          <span data-testid="stage-badge" className="font-bold text-[#052767]">
+            {stage.badge} (Adım {stage.stepNumber}/3)
           </span>
 
           {isVeteran ? (
-            <div
+            <span
               data-testid="veteran-countdown-timer"
-              className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-xs font-extrabold border ${
+              className={`px-2 py-0.5 font-mono text-xs font-bold border rounded-[2px] ${
                 secondsLeft <= 15
-                  ? 'bg-rose-500/25 text-rose-200 border-rose-500 animate-pulse'
-                  : 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                  ? 'bg-[#dc3545] text-white border-[#b02a37]'
+                  : 'bg-[#fff3cd] text-[#664d03] border-[#ffecb5]'
               }`}
             >
-              <Clock className="w-3.5 h-3.5" />
-              <span>00:{String(secondsLeft).padStart(2, '0')}</span>
-            </div>
+              Süre: 00:{String(secondsLeft).padStart(2, '0')}
+            </span>
           ) : (
             <span
               data-testid="novice-mode-badge"
-              className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300 border border-emerald-500/30"
+              className="px-2 py-0.5 font-mono text-[11px] bg-[#d1e7dd] text-[#0f5132] border border-[#badbcc] rounded-[2px]"
             >
-              <Lightbulb className="w-3.5 h-3.5" />
-              İpucu Açık · Süresiz
+              Rehber Açık | Süresiz
             </span>
           )}
         </div>
 
-        {/* Live Hospital Metrics */}
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl bg-slate-900/90 border border-slate-800/90 p-2">
-            <div className="text-[10px] text-slate-400">Saat</div>
-            <div className="text-xs font-mono font-bold text-white" data-testid="telemetry-clock">
-              {telemetry.incidentClock}
-            </div>
-          </div>
-          <div className="rounded-xl bg-slate-900/90 border border-slate-800/90 p-2">
-            <div className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-              <Users className="w-3 h-3 text-rose-400" /> Bekleyen
-            </div>
-            <div
-              className="text-xs font-mono font-bold text-rose-300"
-              data-testid="telemetry-patients"
-            >
-              {telemetry.waitingPatients} Hasta
-            </div>
-          </div>
-          <div className="rounded-xl bg-slate-900/90 border border-slate-800/90 p-2">
-            <div className="text-[10px] text-slate-400">KVKK Kalkanı</div>
-            <div className="text-xs font-mono font-bold flex items-center justify-center gap-1">
-              {telemetry.kvkkCompliant ? (
-                <span className="text-emerald-400 flex items-center gap-0.5">
-                  <ShieldCheck className="w-3.5 h-3.5" /> KORUNUYOR
-                </span>
-              ) : (
-                <span className="text-rose-400 flex items-center gap-0.5">
-                  <ShieldAlert className="w-3.5 h-3.5" /> İHLAL
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
+        <div className="p-2.5">
+          <table className="w-full border-collapse border border-[#dee2e6] text-xs text-center">
+            <thead>
+              <tr className="bg-[#f8f9fa] text-[#495057] font-semibold">
+                <th className="border border-[#dee2e6] py-1 px-2">Sistem Saati</th>
+                <th className="border border-[#dee2e6] py-1 px-2">Bekleyen Kuyruk</th>
+                <th className="border border-[#dee2e6] py-1 px-2">KVKK Denetimi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td
+                  className="border border-[#dee2e6] py-1.5 px-2 font-mono font-bold text-[#212529]"
+                  data-testid="telemetry-clock"
+                >
+                  {telemetry.incidentClock}
+                </td>
+                <td
+                  className="border border-[#dee2e6] py-1.5 px-2 font-mono font-bold text-[#dc3545]"
+                  data-testid="telemetry-patients"
+                >
+                  {telemetry.waitingPatients} Hasta
+                </td>
+                <td className="border border-[#dee2e6] py-1.5 px-2 font-mono font-bold">
+                  {telemetry.kvkkCompliant ? (
+                    <span className="text-[#198754]">UYUMLU</span>
+                  ) : (
+                    <span className="text-[#dc3545]">İHLAL VAR</span>
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-        {/* Active Calibration Tags */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-800/80 text-[10px] font-mono">
-          <span className="rounded bg-slate-800 px-2 py-0.5 text-slate-300">
-            Seviye: {levelMeta.title}
-          </span>
-          <span className="rounded bg-cyan-950/60 px-2 py-0.5 text-cyan-300 border border-cyan-500/20">
-            Rol: {roleMeta.shortBadge}
-          </span>
-          <span className="rounded bg-amber-950/60 px-2 py-0.5 text-amber-300 border border-amber-500/20">
-            Hedef: {goalMeta.shortBadge}
-          </span>
+          <div className="mt-2 text-[11px] text-[#495057] font-mono bg-[#f8f9fa] border border-[#dee2e6] px-2 py-1">
+            Profil: {levelMeta.title} | Rol: {roleMeta.shortBadge} | Hedef: {goalMeta.shortBadge}
+          </div>
         </div>
       </div>
 
-      {/* Crisis Narrative Card (Adapted to Role & Goal) */}
-      <div className="rounded-2xl border border-slate-800 bg-[#111827] p-4 space-y-2.5">
-        <h2 className="text-base font-extrabold text-white leading-snug">
-          {stage.headline}
-        </h2>
-        <p className="text-xs text-slate-300 leading-relaxed">{stage.baseSituation}</p>
-
-        {/* Dynamic Role & Goal Adaptation Box */}
-        <div
-          className="rounded-xl border border-cyan-500/25 bg-cyan-950/15 p-2.5 space-y-1 text-xs"
-          data-testid="role-adapted-narrative"
-        >
-          <div className="text-cyan-200 leading-relaxed">{stage.roleNarratives[profile.role]}</div>
-          <div className="text-amber-300/90 text-[11px] font-medium pt-1 border-t border-cyan-500/15">
-            {stage.goalStakes[profile.goal]}
-          </div>
+      {/* Crisis Description & Server Logs Card */}
+      <div className="blazor-card">
+        <div className="blazor-card-header text-xs">
+          Olay Özeti ve Sistem Günlüğü (Event Log)
         </div>
+        <div className="p-3 space-y-2.5">
+          <h2 className="text-sm font-bold text-[#212529]">
+            {stage.headline}
+          </h2>
+          <p className="text-xs text-[#343a40] leading-normal">
+            {stage.baseSituation}
+          </p>
 
-        {/* Terminal Log Box */}
-        <div className="rounded-xl border border-slate-800 bg-[#070A12] p-2.5 font-mono text-[11px] space-y-1 overflow-x-auto">
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 pb-1 border-b border-slate-800/80">
-            <Terminal className="w-3 h-3 text-emerald-400" />
-            <span>hbys-prod-cluster · canlı telemetri akışı</span>
-          </div>
-          {stage.terminalLogLines.map((line, idx) => (
-            <div
-              key={idx}
-              className={
-                line.includes('[CRIT]') || line.includes('[ALRT]') || line.includes('[SEC]')
-                  ? 'text-rose-300'
-                  : line.includes('[WARN]')
-                  ? 'text-amber-300'
-                  : 'text-slate-300'
-              }
-            >
-              {line}
+          {/* Role & Goal Specific Box */}
+          <div
+            className="bg-[#e7f1ff] border border-[#b6d4fe] text-[#084298] p-2.5 rounded-[2px] text-xs space-y-1"
+            data-testid="role-adapted-narrative"
+          >
+            <div>{stage.roleNarratives[profile.role]}</div>
+            <div className="font-semibold pt-1 border-t border-[#b6d4fe] text-[11px]">
+              {stage.goalStakes[profile.goal]}
             </div>
-          ))}
+          </div>
+
+          {/* Classic Windows / Linux Console Pre Box */}
+          <div className="bg-[#1e1e1e] text-[#d4d4d4] border border-[#6c757d] p-2 font-mono text-[11px] space-y-1 overflow-x-auto">
+            <div className="text-[10px] text-[#9cdcfe] border-b border-[#3c3c3c] pb-1 mb-1">
+              HBYS.EventLog.Reader — /var/log/hbys/randevu.log
+            </div>
+            {stage.terminalLogLines.map((line, idx) => (
+              <div
+                key={idx}
+                className={
+                  line.includes('[CRIT]') || line.includes('[ALRT]') || line.includes('[SEC]')
+                    ? 'text-[#f48771]'
+                    : line.includes('[WARN]')
+                    ? 'text-[#cca700]'
+                    : 'text-[#d4d4d4]'
+                }
+              >
+                {line}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Novice Automatic Hint Card (Only shown automatically when level === 'novice') */}
+      {/* Novice Starter Hint (Classic Bootstrap Warning Alert) */}
       {!isVeteran && (
         <div
           data-testid="novice-starter-hint"
-          className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3.5 flex items-start gap-2.5"
+          className="bg-[#fff3cd] border border-[#ffecb5] border-l-4 border-l-[#ffc107] text-[#664d03] p-2.5 rounded-[3px] text-xs"
         >
-          <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-100 leading-relaxed">
-            {stage.noviceStarterHint}
-          </div>
+          <strong>Sistem Rehberi: </strong>
+          {stage.noviceStarterHint}
         </div>
       )}
 
-      {/* Decision Buttons OR Post-Decision "Ne Oldu / Neden Oldu" Causal Breakdown */}
+      {/* Decision Form OR Post-Decision "Ne Oldu / Neden Oldu" Result Panel */}
       {!activeCausalReview ? (
-        <div className="space-y-2.5" data-testid="decision-options-group">
-          <div className="text-xs font-bold uppercase tracking-wider text-slate-300 px-1">
-            Mühendislik Kararını Seç:
+        <div className="blazor-card border-t-[3px] border-t-[#1b6ec2]" data-testid="decision-options-group">
+          <div className="blazor-card-header text-xs">
+            Uygulanacak Mühendislik Komutunu Seçin
           </div>
-          {stage.options.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              data-testid={`choice-btn-${opt.key}`}
-              onClick={() => onSelectChoice(opt.key, false)}
-              className="w-full text-left rounded-2xl border border-slate-700/90 bg-[#161F33] hover:bg-[#1E293B] hover:border-emerald-500/60 active:scale-[0.99] p-3.5 transition-all space-y-1.5 cursor-pointer group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-extrabold text-white group-hover:text-emerald-300 transition">
-                  {opt.shortTitle}
-                </span>
-                <span className="rounded-lg bg-slate-800 px-2 py-0.5 font-mono text-[10px] text-slate-300 border border-slate-700">
-                  Seçenek {opt.key}
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">{opt.subtitle}</p>
-              <div className="rounded-lg bg-[#090D16] px-2.5 py-1.5 font-mono text-[10px] text-emerald-300/90 border border-slate-800/80 truncate">
-                $ {opt.commandPreview}
-              </div>
-            </button>
-          ))}
-        </div>
-      ) : (
-        /* NE OLDU & NEDEN OLDU (Seçim Sonrası Teknik Sonuç Paneli) */
-        <div
-          data-testid="causal-feedback-card"
-          className={`rounded-2xl border-2 p-4 space-y-3 shadow-xl ${
-            activeCausalReview.chosenKey === 'A'
-              ? 'border-emerald-500/60 bg-emerald-950/20'
-              : 'border-rose-500/60 bg-rose-950/20'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                activeCausalReview.chosenKey === 'A'
-                  ? 'bg-emerald-500/20 text-emerald-300'
-                  : 'bg-rose-500/20 text-rose-300'
-              }`}
-            >
-              {activeCausalReview.chosenKey === 'A' ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : (
-                <AlertTriangle className="w-4 h-4" />
-              )}
-              {activeCausalReview.timedOut
-                ? 'SÜRE DOLDU (60sn Aşımı)'
-                : `SEÇİLEN KARAR: ${activeCausalReview.chosenLabel}`}
-            </span>
-            <span className="font-mono text-xs text-slate-400">
-              Saat {activeCausalReview.telemetryDelta.clockAfter}
-            </span>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="rounded-xl bg-slate-900/85 border border-slate-800 p-3 space-y-1">
-              <div className="font-bold text-white uppercase tracking-wide text-[11px]">
-                1. Teknik Olarak Ne Oldu?
-              </div>
-              <p className="text-slate-200 leading-relaxed" data-testid="feedback-what-happened">
-                {activeCausalReview.whatHappened}
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-slate-900/85 border border-slate-800 p-3 space-y-1">
-              <div className="font-bold text-amber-300 uppercase tracking-wide text-[11px]">
-                2. Neden Oldu? (Mühendislik Nedenselliği)
-              </div>
-              <p className="text-slate-200 leading-relaxed" data-testid="feedback-why-happened">
-                {activeCausalReview.whyItHappened}
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-cyan-950/30 border border-cyan-500/30 p-2.5 text-[11px] text-cyan-200">
-              {activeCausalReview.roleSpecificInsight}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            data-testid="next-stage-btn"
-            onClick={onProceedNextStage}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-extrabold text-xs py-3.5 px-4 transition cursor-pointer"
-          >
-            <span>
-              {stage.stepNumber < 3
-                ? `Analizi Okudum · Karar ${stage.stepNumber + 1}'e Geç`
-                : 'Analizi Okudum · Nöbet Sonuç Raporunu Gör'}
-            </span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Socratic AI Tutor Panel ("AI tutor cevabı söylemez, sorar") */}
-      <div
-        className="rounded-2xl border border-amber-500/35 bg-[#121726] p-3.5 space-y-3"
-        data-testid="socratic-tutor-panel"
-      >
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              <Bot className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                <span>Sokratik AI Tutor</span>
-                <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-mono text-amber-300">
-                  Spoiler Guard v2
-                </span>
-              </div>
-              <div className="text-[10px] text-slate-400">
-                Cevabı söylemez, ödünleşim (trade-off) sorusu sorar
-              </div>
-            </div>
-          </div>
-          <HelpCircle className="w-4 h-4 text-amber-400/70" />
-        </div>
-
-        {/* Chat History */}
-        <div
-          className="space-y-2 max-h-48 overflow-y-auto pr-1"
-          data-testid="tutor-messages-list"
-        >
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              data-testid={`tutor-msg-${msg.sender}`}
-              className={`rounded-xl p-2.5 text-xs leading-relaxed ${
-                msg.sender === 'tutor'
-                  ? 'bg-amber-500/10 border border-amber-500/25 text-amber-100'
-                  : 'bg-slate-800/90 border border-slate-700 text-slate-200 ml-6'
-              }`}
-            >
-              <div className="flex items-center justify-between text-[10px] font-mono mb-1 opacity-75">
-                <span>
-                  {msg.sender === 'tutor' ? 'SOKRATİK MENTOR' : 'NÖBETÇİ MÜHENDİS (SEN)'}
-                </span>
-                <span>{msg.timestamp}</span>
-              </div>
-              <div>“{msg.text}”</div>
-            </div>
-          ))}
-          {isTutorThinking && (
-            <div className="text-[11px] font-mono text-amber-300 animate-pulse px-2">
-              Sokratik Tutor karşı-soru hazırlıyor...
-            </div>
-          )}
-        </div>
-
-        {/* Quick Student Prompts */}
-        <div className="space-y-1.5">
-          <div className="text-[10px] text-slate-400 font-medium">
-            Hızlı Öğrenci Soruları (Tıkla veya Kendi Sorunu Yaz):
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {stage.quickStudentPrompts.map((promptText, idx) => (
+          <div className="p-3 space-y-2.5">
+            {stage.options.map((opt) => (
               <button
-                key={idx}
+                key={opt.key}
                 type="button"
-                data-testid={`quick-prompt-${idx}`}
-                onClick={() => handleSendToTutor(promptText)}
-                className="text-left rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 px-2.5 py-1.5 text-[11px] text-slate-300 hover:text-amber-200 transition cursor-pointer"
+                data-testid={`choice-btn-${opt.key}`}
+                onClick={() => onSelectChoice(opt.key, false)}
+                className="w-full text-left border border-[#adb5bd] bg-[#ffffff] hover:bg-[#e7f1ff] hover:border-[#1b6ec2] p-3 rounded-[3px] transition-colors cursor-pointer space-y-1.5"
               >
-                {promptText}
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#1b6ec2]">
+                    {opt.shortTitle}
+                  </span>
+                  <span className="px-1.5 py-0.5 font-mono text-[10px] bg-[#e9ecef] text-[#495057] border border-[#ced4da] rounded-[2px]">
+                    Komut [{opt.key}]
+                  </span>
+                </div>
+                <p className="text-xs text-[#212529]">{opt.subtitle}</p>
+                <div className="bg-[#f8f9fa] border border-[#dee2e6] px-2 py-1 font-mono text-[10px] text-[#495057] truncate">
+                  &gt; {opt.commandPreview}
+                </div>
               </button>
             ))}
           </div>
         </div>
-
-        {/* Free-form Student Input */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendToTutor(studentInput);
-          }}
-          className="flex items-center gap-2"
+      ) : (
+        /* NE OLDU & NEDEN OLDU (Seçim Sonrası Teknik Rapor) */
+        <div
+          data-testid="causal-feedback-card"
+          className={`blazor-card border-t-4 ${
+            activeCausalReview.chosenKey === 'A'
+              ? 'border-t-[#198754]'
+              : 'border-t-[#dc3545]'
+          }`}
         >
-          <input
-            type="text"
-            value={studentInput}
-            onChange={(e) => setStudentInput(e.target.value)}
-            data-testid="tutor-input"
-            placeholder="Tutor'a sor (Örn: A mı B mi söyle, şema değişti mi?)..."
-            className="flex-1 rounded-xl border border-slate-700 bg-slate-900/90 px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
-          />
-          <button
-            type="submit"
-            data-testid="tutor-send-btn"
-            disabled={!studentInput.trim() || isTutorThinking}
-            className="rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold p-2.5 transition cursor-pointer"
-            aria-label="Gönder"
+          <div className="blazor-card-header flex items-center justify-between text-xs">
+            <span
+              className={`font-bold ${
+                activeCausalReview.chosenKey === 'A'
+                  ? 'text-[#198754]'
+                  : 'text-[#dc3545]'
+              }`}
+            >
+              {activeCausalReview.timedOut
+                ? 'SÜRE AŞIMI (60sn Doldu)'
+                : `İŞLEM SONUCU: ${activeCausalReview.chosenLabel}`}
+            </span>
+            <span className="font-mono text-xs text-[#495057]">
+              Saat: {activeCausalReview.telemetryDelta.clockAfter}
+            </span>
+          </div>
+
+          <div className="p-3 space-y-2.5 text-xs">
+            <div className="bg-[#f8f9fa] border border-[#dee2e6] p-2.5 rounded-[2px]">
+              <div className="font-bold text-[#212529] mb-1">
+                1. Ne Oldu? (Sistem Etkisi):
+              </div>
+              <p className="text-[#343a40]" data-testid="feedback-what-happened">
+                {activeCausalReview.whatHappened}
+              </p>
+            </div>
+
+            <div className="bg-[#fff3cd] border border-[#ffecb5] p-2.5 rounded-[2px]">
+              <div className="font-bold text-[#664d03] mb-1">
+                2. Neden Oldu? (Kök Neden Analizi):
+              </div>
+              <p className="text-[#664d03]" data-testid="feedback-why-happened">
+                {activeCausalReview.whyItHappened}
+              </p>
+            </div>
+
+            <div className="bg-[#e2e3e5] border border-[#d3d6d8] p-2 text-[11px] text-[#41464b]">
+              {activeCausalReview.roleSpecificInsight}
+            </div>
+
+            <button
+              type="button"
+              data-testid="next-stage-btn"
+              onClick={onProceedNextStage}
+              className="w-full blazor-btn-primary font-bold text-xs py-2.5 px-4 cursor-pointer"
+            >
+              {stage.stepNumber < 3
+                ? `Analizi Onayla ve Karar ${stage.stepNumber + 1} Ekranına Geç >>`
+                : 'Analizi Onayla ve Nöbet Sonuç Raporunu Aç >>'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Socratic AI Tutor Panel (Classic Enterprise GroupBox) */}
+      <div
+        className="blazor-card border-t-[3px] border-t-[#fd7e14]"
+        data-testid="socratic-tutor-panel"
+      >
+        <div className="blazor-card-header flex items-center justify-between text-xs">
+          <span>Sokratik AI Tutor (Cevabı Vermez, Soru Sorar)</span>
+          <span className="font-mono text-[10px] bg-[#fff3cd] text-[#664d03] border border-[#ffecb5] px-1.5 py-0.5 rounded-[2px]">
+            SpoilerGuard.Aktif
+          </span>
+        </div>
+
+        <div className="p-3 space-y-2.5">
+          {/* Messages List */}
+          <div
+            className="space-y-2 max-h-44 overflow-y-auto border border-[#dee2e6] bg-[#f8f9fa] p-2"
+            data-testid="tutor-messages-list"
           >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                data-testid={`tutor-msg-${msg.sender}`}
+                className={`p-2 text-xs border rounded-[2px] ${
+                  msg.sender === 'tutor'
+                    ? 'bg-[#fff3cd] border-[#ffecb5] text-[#664d03]'
+                    : 'bg-[#ffffff] border-[#ced4da] text-[#212529] ml-4'
+                }`}
+              >
+                <div className="flex items-center justify-between text-[10px] font-mono font-bold mb-0.5">
+                  <span>
+                    {msg.sender === 'tutor' ? '[SOKRATİK TUTOR]' : '[MÜHENDİS]'}
+                  </span>
+                  <span>{msg.timestamp}</span>
+                </div>
+                <div>“{msg.text}”</div>
+              </div>
+            ))}
+            {isTutorThinking && (
+              <div className="text-[11px] font-mono text-[#6c757d] px-1">
+                Sokratik sorgu üretiliyor...
+              </div>
+            )}
+          </div>
+
+          {/* Quick Prompt Buttons */}
+          <div className="space-y-1">
+            <div className="text-[11px] font-semibold text-[#495057]">
+              Örnek Sorular:
+            </div>
+            <div className="flex flex-col gap-1">
+              {stage.quickStudentPrompts.map((promptText, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  data-testid={`quick-prompt-${idx}`}
+                  onClick={() => handleSendToTutor(promptText)}
+                  className="text-left bg-[#f8f9fa] hover:bg-[#e9ecef] border border-[#ced4da] px-2 py-1 text-[11px] text-[#212529] rounded-[2px] cursor-pointer"
+                >
+                  &raquo; {promptText}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Input Form */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendToTutor(studentInput);
+            }}
+            className="flex items-center gap-1.5"
+          >
+            <input
+              type="text"
+              value={studentInput}
+              onChange={(e) => setStudentInput(e.target.value)}
+              data-testid="tutor-input"
+              placeholder="Sorunuzu yazın..."
+              className="flex-1 border border-[#ced4da] bg-white px-2.5 py-1.5 text-xs text-[#212529] rounded-[2px] focus:border-[#1b6ec2] focus:outline-none"
+            />
+            <button
+              type="submit"
+              data-testid="tutor-send-btn"
+              disabled={!studentInput.trim() || isTutorThinking}
+              className="blazor-btn-primary disabled:opacity-50 font-semibold text-xs px-3 py-1.5 cursor-pointer"
+            >
+              Sor
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

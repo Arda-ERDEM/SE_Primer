@@ -10,16 +10,6 @@ import {
   EXPERIENCE_LEVELS,
   PRIMARY_GOALS,
 } from '../domain/incidentMatrix';
-import {
-  Activity,
-  BookOpen,
-  Clock,
-  Cpu,
-  Play,
-  ShieldAlert,
-  Sparkles,
-  Target,
-} from 'lucide-react';
 
 interface CalibrationViewProps {
   profile: CalibrationProfile;
@@ -37,42 +27,31 @@ export const CalibrationView: React.FC<CalibrationViewProps> = ({
   const activeGoal = PRIMARY_GOALS.find((g) => g.id === profile.goal)!;
 
   return (
-    <div className="space-y-4 pb-6" data-testid="screen-calibration">
-      {/* Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-rose-500/30 bg-gradient-to-br from-[#161F33] via-[#111827] to-[#1A121B] p-4 shadow-lg">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 px-2.5 py-0.5 text-[11px] font-mono font-bold text-rose-300 border border-rose-500/40">
-            <span className="h-2 w-2 rounded-full bg-rose-400 animate-ping" />
-            SAAT 08:00 · ACİL NÖBET ÇAĞRISI
+    <div className="space-y-3 pb-4" data-testid="screen-calibration">
+      {/* Classic Bootstrap Danger Alert Box */}
+      <div className="bg-[#f8d7da] border border-[#f5c2c7] border-l-4 border-l-[#dc3545] text-[#842029] p-3 rounded-[3px]">
+        <div className="flex items-center justify-between text-xs font-mono font-bold mb-1">
+          <span>OLAY KAYDI #2026-0800</span>
+          <span className="bg-[#dc3545] text-white px-1.5 py-0.5 rounded-[2px] text-[10px]">
+            KRİTİK ARIZA
           </span>
-          <span className="text-[11px] font-mono text-slate-400">HBYS-CORE v2.4.0</span>
         </div>
-
-        <h1 className="text-lg font-extrabold tracking-tight text-white leading-snug">
+        <h1 className="text-base font-bold text-[#58151c]">
           “08:00, randevu sistemi çöktü. Nöbetçi sensin.”
         </h1>
-        <p className="mt-1.5 text-xs text-slate-300 leading-relaxed">
-          Dün gece yeni sürüm çıktı. Poliklinik kapısında <strong className="text-rose-300">300 hasta</strong> kayıt bekliyor.
-          Kişiye uyum sağlayan <strong className="text-emerald-300">SE Primer</strong> kitabın, aşağıdaki 3 yanıtına göre anlatıyı,
-          sistem loglarını ve kısıtları senin için uyarlayacak.
+        <p className="mt-1 text-xs text-[#842029]">
+          Dün gece yeni sürüm (v2.4.0) çıktı. Poliklinik girişinde <strong>300 hasta</strong> kayıt bekliyor.
+          Aşağıdaki 3 oturum parametresini seçerek simülasyon anlatısını ve sistem kısıtlarını başlatın.
         </p>
       </div>
 
-      {/* Question 1: Seviye */}
-      <section className="rounded-2xl border border-slate-800 bg-[#111827]/90 p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold">
-              1
-            </span>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Deneyim Seviyen Nedir?
-            </h2>
-          </div>
-          <Clock className="w-4 h-4 text-amber-400" />
+      {/* Form Panel 1: Deneyim Seviyesi */}
+      <div className="blazor-card border-t-[3px] border-t-[#1b6ec2]">
+        <div className="blazor-card-header flex items-center justify-between text-xs">
+          <span>1. Operatör Deneyim Seviyesi</span>
+          <span className="font-mono text-[11px] text-[#6c757d]">Zorunlu Alan</span>
         </div>
-
-        <div className="grid grid-cols-2 gap-2">
+        <div className="p-3 space-y-2">
           {EXPERIENCE_LEVELS.map((lvl) => {
             const selected = profile.level === lvl.id;
             return (
@@ -83,48 +62,48 @@ export const CalibrationView: React.FC<CalibrationViewProps> = ({
                 onClick={() =>
                   onChangeProfile({ ...profile, level: lvl.id as ExperienceTier })
                 }
-                className={`text-left rounded-xl border p-3 transition-all ${
+                className={`w-full text-left p-2.5 border rounded-[3px] cursor-pointer transition-colors ${
                   selected
-                    ? 'border-emerald-500 bg-emerald-500/15 shadow-sm shadow-emerald-500/10'
-                    : 'border-slate-800 bg-slate-900/70 hover:border-slate-700'
+                    ? 'bg-[#e7f1ff] border-[#1b6ec2] text-[#084298]'
+                    : 'bg-[#ffffff] border-[#ced4da] text-[#212529] hover:bg-[#f8f9fa]'
                 }`}
               >
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-xs font-bold text-white">{lvl.title}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      readOnly
+                      checked={selected}
+                      className="h-3.5 w-3.5 accent-[#1b6ec2]"
+                    />
+                    <span className="text-xs font-bold">{lvl.title}</span>
+                  </div>
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                    className={`px-1.5 py-0.5 text-[10px] font-mono border rounded-[2px] ${
                       lvl.id === 'veteran'
-                        ? 'bg-rose-500/20 text-rose-300'
-                        : 'bg-amber-500/20 text-amber-300'
+                        ? 'bg-[#f8d7da] text-[#842029] border-[#f5c2c7]'
+                        : 'bg-[#fff3cd] text-[#664d03] border-[#ffecb5]'
                     }`}
                   >
                     {lvl.badge}
                   </span>
                 </div>
-                <p className="mt-1.5 text-[11px] text-slate-400 leading-snug">
+                <p className="mt-1 pl-5 text-[11px] text-[#495057]">
                   {lvl.adaptationRule}
                 </p>
               </button>
             );
           })}
         </div>
-      </section>
+      </div>
 
-      {/* Question 2: Rol */}
-      <section className="rounded-2xl border border-slate-800 bg-[#111827]/90 p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 font-mono text-xs font-bold">
-              2
-            </span>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Nöbetçi Mühendis Rolün?
-            </h2>
-          </div>
-          <Cpu className="w-4 h-4 text-cyan-400" />
+      {/* Form Panel 2: Mühendislik Rolü */}
+      <div className="blazor-card border-t-[3px] border-t-[#1b6ec2]">
+        <div className="blazor-card-header flex items-center justify-between text-xs">
+          <span>2. Nöbetçi Mühendis Rolü</span>
+          <span className="font-mono text-[11px] text-[#6c757d]">Birim Ataması</span>
         </div>
-
-        <div className="space-y-1.5">
+        <div className="p-3 space-y-2">
           {ENGINEERING_ROLES.map((role) => {
             const selected = profile.role === role.id;
             return (
@@ -135,42 +114,42 @@ export const CalibrationView: React.FC<CalibrationViewProps> = ({
                 onClick={() =>
                   onChangeProfile({ ...profile, role: role.id as EngineeringRole })
                 }
-                className={`w-full text-left rounded-xl border p-2.5 transition-all flex items-start justify-between gap-2 ${
+                className={`w-full text-left p-2.5 border rounded-[3px] cursor-pointer transition-colors ${
                   selected
-                    ? 'border-cyan-500 bg-cyan-500/15'
-                    : 'border-slate-800 bg-slate-900/70 hover:border-slate-700'
+                    ? 'bg-[#e7f1ff] border-[#1b6ec2] text-[#084298]'
+                    : 'bg-[#ffffff] border-[#ced4da] text-[#212529] hover:bg-[#f8f9fa]'
                 }`}
               >
-                <div>
-                  <div className="text-xs font-bold text-white">{role.title}</div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">
-                    {role.focusDescription}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      readOnly
+                      checked={selected}
+                      className="h-3.5 w-3.5 accent-[#1b6ec2]"
+                    />
+                    <span className="text-xs font-bold">{role.title}</span>
                   </div>
+                  <span className="px-1.5 py-0.5 text-[10px] font-mono bg-[#e9ecef] text-[#495057] border border-[#ced4da] rounded-[2px]">
+                    {role.shortBadge}
+                  </span>
                 </div>
-                <span className="shrink-0 rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-mono text-cyan-300 border border-slate-700">
-                  {role.shortBadge}
-                </span>
+                <p className="mt-1 pl-5 text-[11px] text-[#495057]">
+                  {role.focusDescription}
+                </p>
               </button>
             );
           })}
         </div>
-      </section>
+      </div>
 
-      {/* Question 3: Hedef */}
-      <section className="rounded-2xl border border-slate-800 bg-[#111827]/90 p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">
-              3
-            </span>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Birincil Kriz Hedefin?
-            </h2>
-          </div>
-          <Target className="w-4 h-4 text-amber-400" />
+      {/* Form Panel 3: Birincil Kriz Hedefi */}
+      <div className="blazor-card border-t-[3px] border-t-[#1b6ec2]">
+        <div className="blazor-card-header flex items-center justify-between text-xs">
+          <span>3. Birincil Kriz Hedefi (SLA Önceliği)</span>
+          <span className="font-mono text-[11px] text-[#6c757d]">Hedef Kriteri</span>
         </div>
-
-        <div className="grid grid-cols-3 gap-2">
+        <div className="p-3 space-y-2">
           {PRIMARY_GOALS.map((goal) => {
             const selected = profile.goal === goal.id;
             return (
@@ -181,58 +160,58 @@ export const CalibrationView: React.FC<CalibrationViewProps> = ({
                 onClick={() =>
                   onChangeProfile({ ...profile, goal: goal.id as PrimaryGoal })
                 }
-                className={`text-left rounded-xl border p-2.5 transition-all flex flex-col justify-between ${
+                className={`w-full text-left p-2.5 border rounded-[3px] cursor-pointer transition-colors ${
                   selected
-                    ? 'border-amber-500 bg-amber-500/15'
-                    : 'border-slate-800 bg-slate-900/70 hover:border-slate-700'
+                    ? 'bg-[#e7f1ff] border-[#1b6ec2] text-[#084298]'
+                    : 'bg-[#ffffff] border-[#ced4da] text-[#212529] hover:bg-[#f8f9fa]'
                 }`}
               >
-                <div>
-                  <span className="inline-block rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-amber-300 mb-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      readOnly
+                      checked={selected}
+                      className="h-3.5 w-3.5 accent-[#1b6ec2]"
+                    />
+                    <span className="text-xs font-bold">{goal.title}</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 text-[10px] font-mono bg-[#e9ecef] text-[#495057] border border-[#ced4da] rounded-[2px]">
                     {goal.shortBadge}
                   </span>
-                  <div className="text-xs font-bold text-white leading-tight">
-                    {goal.title}
-                  </div>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1.5 leading-snug">
+                <p className="mt-1 pl-5 text-[11px] text-[#495057]">
                   {goal.focusDescription}
                 </p>
               </button>
             );
           })}
         </div>
-      </section>
+      </div>
 
-      {/* Live Primer Adaptation Summary Card */}
+      {/* Classic Info Summary Table */}
       <div
-        className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-3.5 space-y-1.5"
+        className="bg-[#cff4fc] border border-[#b6effb] text-[#055160] p-3 rounded-[3px] text-xs"
         data-testid="adaptation-preview"
       >
-        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-          <Sparkles className="w-4 h-4" />
-          <span>Kitap Uyarlama Özeti (Canlı Kalibrasyon)</span>
-        </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          <strong className="text-white">{activeLevel.title}</strong> seviyesinde,{' '}
-          <strong className="text-cyan-300">{activeRole.title}</strong> gözüyle ve{' '}
-          <strong className="text-amber-300">{activeGoal.title}</strong> önceliğiyle
-          oynayacaksın.{' '}
+        <div className="font-bold mb-1">Aktif Oturum Yapılandırması:</div>
+        <p className="leading-normal">
+          Seviye: <strong>{activeLevel.title}</strong> | Rol: <strong>{activeRole.title}</strong> | Hedef:{' '}
+          <strong>{activeGoal.title}</strong>.{' '}
           {profile.level === 'novice'
-            ? 'Her kararda otomatik Sokratik ipucu kartı açılacak.'
-            : 'Her kararda 60 saniyelik stres sayacı işleyecek!'}
+            ? '(Süresiz mod ve otomatik başlangıç rehberi aktif.)'
+            : '(60 saniyelik karar sayacı aktif, otomatik ipucu kapalı.)'}
         </p>
       </div>
 
-      {/* Start CTA */}
+      {/* Submit Button */}
       <button
         type="button"
         data-testid="start-simulation-btn"
         onClick={onStartIncident}
-        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-extrabold text-sm py-4 px-5 shadow-lg shadow-emerald-500/20 transition cursor-pointer"
+        className="w-full blazor-btn-primary font-bold text-sm py-2.5 px-4 shadow-xs cursor-pointer"
       >
-        <Play className="w-4 h-4 fill-current" />
-        <span>Nöbeti Devral · 08:00 Krizini Başlat</span>
+        Nöbet Oturumunu Başlat (08:00)
       </button>
     </div>
   );
