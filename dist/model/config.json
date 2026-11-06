@@ -1,0 +1,122 @@
+{
+  "title": "SE Primer v2.0 — Bilişsel Yük ve Kriz Müdahale Modeli",
+  "version": "2.0.0",
+  "description": "HBYS.Web kriz simülasyonunda nöbetçi mühendisin davranışsal telemetrisinden (karar süresi, seçenekler arası tereddüt, log inceleme oranı, önceki riskli kararlar) uyarlamalı Sokratik müdahale ve süre esnetme ihtiyacını tahmin eden göreve özel ONNX modeli. Yalnız eğitim simülasyonu içindir; gerçek klinik karar için KULLANILMAZ.",
+  "target": "mudahale_gerekli",
+  "threshold": 0.5,
+  "class_labels": {
+    "0": "Otonom Akış (Müdahale Yok)",
+    "1": "Uyarlamalı Kriz Müdahalesi (İpucu + Süre Esnetme)"
+  },
+  "features": [
+    {
+      "name": "sahne_no",
+      "label": "Kriz Sahne No (1: Mimari, 2: Test, 3: KVKK)",
+      "unit": "adim",
+      "min": 1.0,
+      "max": 3.0,
+      "example": 2.0
+    },
+    {
+      "name": "seviye",
+      "label": "Kalibrasyon Seviyesi (0: Yeni Başladım, 1: Deneyimliyim)",
+      "unit": "ikili",
+      "min": 0.0,
+      "max": 1.0,
+      "example": 0.0
+    },
+    {
+      "name": "karar_suresi_sn",
+      "label": "Karar Süresi / Bekleme (sn)",
+      "unit": "saniye",
+      "min": 1.5,
+      "max": 60.0,
+      "example": 23.8
+    },
+    {
+      "name": "tereddut_sayisi",
+      "label": "Seçenekler Arası Tereddüt / Odak Değiştirme",
+      "unit": "adet",
+      "min": 0.0,
+      "max": 15.0,
+      "example": 2.0
+    },
+    {
+      "name": "log_inceleme_orani",
+      "label": "Sistem Loglarını İnceleme Oranı",
+      "unit": "oran",
+      "min": 0.0,
+      "max": 1.0,
+      "example": 0.74
+    },
+    {
+      "name": "onceki_riskli_karar",
+      "label": "Önceki Sahnelerdeki Riskli (B) Karar Sayısı",
+      "unit": "adet",
+      "min": 0.0,
+      "max": 2.0,
+      "example": 0.0
+    },
+    {
+      "name": "tutor_etkilesim_sayisi",
+      "label": "Sokratik Tutor Etkileşim Sayısı",
+      "unit": "adet",
+      "min": 0.0,
+      "max": 10.0,
+      "example": 1.0
+    },
+    {
+      "name": "kalan_sure_orani",
+      "label": "Karar Anında Kalan Süre Oranı",
+      "unit": "oran",
+      "min": 0.0,
+      "max": 1.0,
+      "example": 1.0
+    }
+  ],
+  "classes": [
+    "0",
+    "1"
+  ],
+  "metrics": {
+    "accuracy": 0.9074,
+    "auc": 0.9769,
+    "f1": 0.9296,
+    "precision": 0.8684,
+    "recall": 1.0,
+    "real_subset_accuracy": 0.7778,
+    "onnx_max_diff": 8e-08
+  },
+  "eval_gate": {
+    "passed": true,
+    "thresholds": {
+      "accuracy": 0.8,
+      "auc": 0.85,
+      "f1": 0.78,
+      "onnx_max_diff": 0.0001
+    }
+  },
+  "dataset_summary": {
+    "total_rows": 180,
+    "real_rows": 54,
+    "synthetic_rows": 126,
+    "real_sessions": 18,
+    "synthetic_sessions": 42,
+    "positive_rate": 0.6056
+  },
+  "model_coefficients": {
+    "sahne_no": 0.1393,
+    "seviye": -0.264,
+    "karar_suresi_sn": 0.7363,
+    "tereddut_sayisi": 0.353,
+    "log_inceleme_orani": -1.0593,
+    "onceki_riskli_karar": 0.468,
+    "tutor_etkilesim_sayisi": -0.0892,
+    "kalan_sure_orani": -0.4651
+  },
+  "model_intercept": 0.8333,
+  "onnx_size_bytes": 593,
+  "seed": 13,
+  "sklearn_version": "1.9.1",
+  "python_version": "3.12"
+}
