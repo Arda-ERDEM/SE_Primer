@@ -1,0 +1,7 @@
+{
+  "model_repo": "Arda-ERDEM/se-primer-v2-onnx",
+  "commit": "v2.0.0-baseline",
+  "resolve_base_url": "https://huggingface.co/Arda-ERDEM/se-primer-v2-onnx/resolve/v2.0.0-baseline/",
+  "local_fallback_url": "/model/",
+  "rollout_stage": "canary_100"
+}

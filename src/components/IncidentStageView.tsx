@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   CalibrationProfile,
   ChoiceOptionKey,
@@ -16,39 +16,95 @@ import {
   askSocraticTutor,
   TutorMessage,
 } from '../services/socraticMentor';
+import {
+  AdaptiveInferenceResult,
+  BehavioralTelemetryInput,
+  SessionTelemetryRow,
+} from '../services/onnxAdaptiveEngine';
+import { OnnxParityPanel } from './OnnxParityPanel';
 
 interface IncidentStageViewProps {
+  sessionId: string;
   stageId: DecisionStageId;
   profile: CalibrationProfile;
   telemetry: TelemetrySnapshot;
+  priorDecisions: DecisionRecord[];
   activeCausalReview: DecisionRecord | null;
-  onSelectChoice: (choice: ChoiceOptionKey, timedOut?: boolean) => void;
+  onSelectChoice: (
+    choice: ChoiceOptionKey,
+    timedOut?: boolean,
+    telemetryRow?: SessionTelemetryRow
+  ) => void;
   onProceedNextStage: () => void;
+  dataCollectionOnly?: boolean;
 }
 
 export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
+  sessionId,
   stageId,
   profile,
   telemetry,
+  priorDecisions,
   activeCausalReview,
   onSelectChoice,
   onProceedNextStage,
+  dataCollectionOnly = false,
 }) => {
   const stage = INCIDENT_STAGES[stageId];
   const isVeteran = profile.level === 'veteran';
+  const priorRiskyCount = priorDecisions.filter(
+    (d) => d.chosenKey === 'B' || d.timedOut
+  ).length;
 
   const [secondsLeft, setSecondsLeft] = useState<number>(60);
+  const [timeReliefGranted, setTimeReliefGranted] = useState<boolean>(false);
   const [messages, setMessages] = useState<TutorMessage[]>([]);
   const [studentInput, setStudentInput] = useState<string>('');
   const [isTutorThinking, setIsTutorThinking] = useState<boolean>(false);
+
+  const lastHoveredOptionRef = useRef<ChoiceOptionKey | null>(null);
+  const manualPresetLockRef = useRef<boolean>(false);
+
+  const [telemetryInput, setTelemetryInput] = useState<BehavioralTelemetryInput>(() => ({
+    sahne_no: stage.stepNumber,
+    seviye: isVeteran ? 1 : 0,
+    karar_suresi_sn: 8.0,
+    tereddut_sayisi: 0,
+    log_inceleme_orani: 0.85,
+    onceki_riskli_karar: priorRiskyCount,
+    tutor_etkilesim_sayisi: 0,
+    kalan_sure_orani: isVeteran ? 0.87 : 1.0,
+  }));
+
+  const [inferenceResult, setInferenceResult] =
+    useState<AdaptiveInferenceResult | null>(null);
 
   const roleMeta = ENGINEERING_ROLES.find((r) => r.id === profile.role)!;
   const goalMeta = PRIMARY_GOALS.find((g) => g.id === profile.goal)!;
   const levelMeta = EXPERIENCE_LEVELS.find((l) => l.id === profile.level)!;
 
   useEffect(() => {
+    const riskySoFar = priorDecisions.filter(
+      (d) => d.chosenKey === 'B' || d.timedOut
+    ).length;
+
     setSecondsLeft(60);
+    setTimeReliefGranted(false);
     setStudentInput('');
+    lastHoveredOptionRef.current = null;
+    manualPresetLockRef.current = false;
+
+    setTelemetryInput({
+      sahne_no: stage.stepNumber,
+      seviye: isVeteran ? 1 : 0,
+      karar_suresi_sn: 8.0,
+      tereddut_sayisi: 0,
+      log_inceleme_orani: 0.85,
+      onceki_riskli_karar: riskySoFar,
+      tutor_etkilesim_sayisi: 0,
+      kalan_sure_orani: isVeteran ? 0.87 : 1.0,
+    });
+
     setMessages([
       {
         id: `init-${stageId}`,
@@ -57,7 +113,22 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
         timestamp: telemetry.incidentClock,
       },
     ]);
-  }, [stageId]);
+  }, [stageId, isVeteran]);
+
+  // Model p >= 0.50 verdiğinde oyun davranışını değiştir:
+  // 1) Deneyimli modda süre baskısını esnet (+30 sn bilişsel tampon)
+  useEffect(() => {
+    if (
+      inferenceResult?.interventionRequired &&
+      !timeReliefGranted &&
+      !activeCausalReview
+    ) {
+      setTimeReliefGranted(true);
+      if (isVeteran) {
+        setSecondsLeft((prev) => Math.min(90, prev + 30));
+      }
+    }
+  }, [inferenceResult?.interventionRequired, timeReliefGranted, activeCausalReview, isVeteran]);
 
   useEffect(() => {
     if (!isVeteran || activeCausalReview) return;
@@ -66,15 +137,87 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           window.clearInterval(timer);
-          onSelectChoice('B', true);
+          handleCommitDecision('B', true);
           return 0;
         }
-        return prev - 1;
+        const nextSec = prev - 1;
+        if (!manualPresetLockRef.current) {
+          setTelemetryInput((curr) => ({
+            ...curr,
+            karar_suresi_sn: Number(Math.min(60, curr.karar_suresi_sn + 1).toFixed(1)),
+            kalan_sure_orani: Number(Math.max(0.02, Math.min(1.0, nextSec / 60)).toFixed(2)),
+          }));
+        }
+        return nextSec;
       });
     }, 1000);
 
     return () => window.clearInterval(timer);
   }, [isVeteran, activeCausalReview, stageId]);
+
+  const handleOptionHover = (optKey: ChoiceOptionKey) => {
+    if (activeCausalReview || manualPresetLockRef.current) return;
+    if (lastHoveredOptionRef.current && lastHoveredOptionRef.current !== optKey) {
+      setTelemetryInput((curr) => ({
+        ...curr,
+        tereddut_sayisi: Math.min(15, curr.tereddut_sayisi + 1),
+      }));
+    }
+    lastHoveredOptionRef.current = optKey;
+  };
+
+  const handleLogInspect = () => {
+    if (activeCausalReview || manualPresetLockRef.current) return;
+    setTelemetryInput((curr) => ({
+      ...curr,
+      log_inceleme_orani: Number(Math.min(0.98, curr.log_inceleme_orani + 0.08).toFixed(2)),
+    }));
+  };
+
+  const handleSelectPersonaPreset = (preset: 'flow' | 'overload') => {
+    manualPresetLockRef.current = true;
+    if (preset === 'flow') {
+      setTimeReliefGranted(false);
+      setTelemetryInput({
+        sahne_no: stage.stepNumber,
+        seviye: isVeteran ? 1 : 0,
+        karar_suresi_sn: 11.0,
+        tereddut_sayisi: 1,
+        log_inceleme_orani: 0.9,
+        onceki_riskli_karar: 0,
+        tutor_etkilesim_sayisi: 0,
+        kalan_sure_orani: 0.82,
+      });
+    } else {
+      setTelemetryInput({
+        sahne_no: stage.stepNumber,
+        seviye: isVeteran ? 1 : 0,
+        karar_suresi_sn: 44.0,
+        tereddut_sayisi: 6,
+        log_inceleme_orani: 0.22,
+        onceki_riskli_karar: Math.max(1, priorRiskyCount),
+        tutor_etkilesim_sayisi: 2,
+        kalan_sure_orani: 0.27,
+      });
+    }
+  };
+
+  const handleManualTelemetryChange = (updated: BehavioralTelemetryInput) => {
+    manualPresetLockRef.current = true;
+    setTelemetryInput(updated);
+  };
+
+  const handleCommitDecision = (choice: ChoiceOptionKey, timedOut: boolean) => {
+    const row: SessionTelemetryRow = {
+      oturum: sessionId,
+      ...telemetryInput,
+      mudahale_gerekli: inferenceResult?.interventionRequired ? 1 : 0,
+      kaynak: 'gercek',
+      p_model: inferenceResult?.p ?? 0,
+      chosen_key: choice,
+    };
+    onSelectChoice(choice, timedOut, row);
+  };
 
   const handleSendToTutor = async (questionText: string) => {
     const trimmed = questionText.trim();
@@ -91,6 +234,13 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
     setStudentInput('');
     setIsTutorThinking(true);
 
+    if (!manualPresetLockRef.current) {
+      setTelemetryInput((curr) => ({
+        ...curr,
+        tutor_etkilesim_sayisi: Math.min(10, curr.tutor_etkilesim_sayisi + 1),
+      }));
+    }
+
     const reply = await askSocraticTutor(trimmed, stageId, profile);
 
     const tutorMsg: TutorMessage = {
@@ -105,6 +255,9 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
     setIsTutorThinking(false);
   };
 
+  const isAdaptiveInterventionActive =
+    !dataCollectionOnly && (inferenceResult?.interventionRequired ?? false);
+
   return (
     <div className="space-y-3 pb-4" data-testid={`screen-stage-${stage.stepNumber}`}>
       {/* Classic Blazor / Bootstrap Telemetry Table Card */}
@@ -114,25 +267,35 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
             {stage.badge} (Adım {stage.stepNumber}/3)
           </span>
 
-          {isVeteran ? (
-            <span
-              data-testid="veteran-countdown-timer"
-              className={`px-2 py-0.5 font-mono text-xs font-bold border rounded-[2px] ${
-                secondsLeft <= 15
-                  ? 'bg-[#dc3545] text-white border-[#b02a37]'
-                  : 'bg-[#fff3cd] text-[#664d03] border-[#ffecb5]'
-              }`}
-            >
-              Süre: 00:{String(secondsLeft).padStart(2, '0')}
-            </span>
-          ) : (
-            <span
-              data-testid="novice-mode-badge"
-              className="px-2 py-0.5 font-mono text-[11px] bg-[#d1e7dd] text-[#0f5132] border border-[#badbcc] rounded-[2px]"
-            >
-              Rehber Açık | Süresiz
-            </span>
-          )}
+          <div className="flex items-center gap-1">
+            {isAdaptiveInterventionActive && (
+              <span
+                data-testid="adaptive-time-relief-badge"
+                className="px-1.5 py-0.5 font-mono text-[10px] font-bold bg-[#cff4fc] text-[#055160] border border-[#b6effb] rounded-[2px]"
+              >
+                Esnek Mod (+30sn)
+              </span>
+            )}
+            {isVeteran ? (
+              <span
+                data-testid="veteran-countdown-timer"
+                className={`px-2 py-0.5 font-mono text-xs font-bold border rounded-[2px] ${
+                  secondsLeft <= 15
+                    ? 'bg-[#dc3545] text-white border-[#b02a37]'
+                    : 'bg-[#fff3cd] text-[#664d03] border-[#ffecb5]'
+                }`}
+              >
+                Süre: 00:{String(secondsLeft).padStart(2, '0')}
+              </span>
+            ) : (
+              <span
+                data-testid="novice-mode-badge"
+                className="px-2 py-0.5 font-mono text-[11px] bg-[#d1e7dd] text-[#0f5132] border border-[#badbcc] rounded-[2px]"
+              >
+                Rehber Açık | Süresiz
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="p-2.5">
@@ -169,16 +332,33 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
             </tbody>
           </table>
 
-          <div className="mt-2 text-[11px] text-[#495057] font-mono bg-[#f8f9fa] border border-[#dee2e6] px-2 py-1">
-            Profil: {levelMeta.title} | Rol: {roleMeta.shortBadge} | Hedef: {goalMeta.shortBadge}
+          <div className="mt-2 text-[11px] text-[#495057] font-mono bg-[#f8f9fa] border border-[#dee2e6] px-2 py-1 flex items-center justify-between">
+            <span>
+              Profil: {levelMeta.title} | Rol: {roleMeta.shortBadge} | Hedef: {goalMeta.shortBadge}
+            </span>
+            <span className="text-[10px] text-[#6c757d]">Oturum: #{sessionId}</span>
           </div>
         </div>
       </div>
 
+      {/* v2.0 ONNX Behavioral Adaptive Engine & Parity Panel */}
+      <OnnxParityPanel
+        telemetry={telemetryInput}
+        onChangeTelemetry={handleManualTelemetryChange}
+        onInferenceResult={setInferenceResult}
+        showPersonaPresets={!activeCausalReview}
+        onSelectPersonaPreset={handleSelectPersonaPreset}
+      />
+
       {/* Crisis Description & Server Logs Card */}
       <div className="blazor-card">
-        <div className="blazor-card-header text-xs">
-          Olay Özeti ve Sistem Günlüğü (Event Log)
+        <div className="blazor-card-header text-xs flex items-center justify-between">
+          <span>Olay Özeti ve Sistem Günlüğü (Event Log)</span>
+          {isAdaptiveInterventionActive && (
+            <span className="text-[10px] font-mono text-[#c2410c] font-bold">
+              [Model: Kritik Kök Neden Vurgulandı]
+            </span>
+          )}
         </div>
         <div className="p-3 space-y-2.5">
           <h2 className="text-sm font-bold text-[#212529]">
@@ -200,29 +380,41 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
           </div>
 
           {/* Classic Windows / Linux Console Pre Box */}
-          <div className="bg-[#1e1e1e] text-[#d4d4d4] border border-[#6c757d] p-2 font-mono text-[11px] space-y-1 overflow-x-auto">
+          <div
+            onClick={handleLogInspect}
+            onMouseEnter={handleLogInspect}
+            className="bg-[#1e1e1e] text-[#d4d4d4] border border-[#6c757d] p-2 font-mono text-[11px] space-y-1 overflow-x-auto cursor-pointer"
+          >
             <div className="text-[10px] text-[#9cdcfe] border-b border-[#3c3c3c] pb-1 mb-1">
               HBYS.EventLog.Reader — /var/log/hbys/randevu.log
             </div>
-            {stage.terminalLogLines.map((line, idx) => (
-              <div
-                key={idx}
-                className={
-                  line.includes('[CRIT]') || line.includes('[ALRT]') || line.includes('[SEC]')
-                    ? 'text-[#f48771]'
-                    : line.includes('[WARN]')
-                    ? 'text-[#cca700]'
-                    : 'text-[#d4d4d4]'
-                }
-              >
-                {line}
-              </div>
-            ))}
+            {stage.terminalLogLines.map((line, idx) => {
+              const isCriticalLine =
+                line.includes('[CRIT]') ||
+                line.includes('[ALRT]') ||
+                line.includes('[SEC]');
+              return (
+                <div
+                  key={idx}
+                  className={
+                    isCriticalLine
+                      ? isAdaptiveInterventionActive
+                        ? 'text-[#ffdf7e] bg-[#4b2316] px-1 font-bold border-l-2 border-[#fd7e14]'
+                        : 'text-[#f48771]'
+                      : line.includes('[WARN]')
+                      ? 'text-[#cca700]'
+                      : 'text-[#d4d4d4]'
+                  }
+                >
+                  {line}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Novice Starter Hint (Classic Bootstrap Warning Alert) */}
+      {/* Novice Starter Hint (Classic Bootstrap Warning Alert - Preserved for v1 Regression) */}
       {!isVeteran && (
         <div
           data-testid="novice-starter-hint"
@@ -233,9 +425,37 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
         </div>
       )}
 
+      {/* v2.0 Model-Driven Proactive Socratic Scaffolding Card (Triggered when p >= 0.50) */}
+      {isAdaptiveInterventionActive && !activeCausalReview && (
+        <div
+          data-testid="model-adaptive-intervention"
+          className="bg-[#fff3cd] border border-[#ffecb5] border-l-4 border-l-[#fd7e14] text-[#664d03] p-3 rounded-[3px] text-xs space-y-1.5"
+        >
+          <div className="flex items-center justify-between font-mono text-[11px] font-bold text-[#993b00]">
+            <span>
+              [ONNX UYARLAMALI MÜDAHALE · p={inferenceResult?.pFormatted} ≥ 0.50]
+            </span>
+            <span>Süre Baskısı Esnetildi</span>
+          </div>
+          <p className="leading-normal">
+            <strong>Proaktif Sokratik İskelet: </strong>
+            {stage.noviceStarterHint}
+          </p>
+          <div
+            data-testid="model-impact-preview"
+            className="bg-[#ffffff] border border-[#ffe69c] p-2 rounded-[2px] text-[11px] text-[#495057] font-mono"
+          >
+            <strong>Karar Öncesi Ödünleşim Kontrolü:</strong> {stage.defaultSocraticQuestion}
+          </div>
+        </div>
+      )}
+
       {/* Decision Form OR Post-Decision "Ne Oldu / Neden Oldu" Result Panel */}
       {!activeCausalReview ? (
-        <div className="blazor-card border-t-[3px] border-t-[#1b6ec2]" data-testid="decision-options-group">
+        <div
+          className="blazor-card border-t-[3px] border-t-[#1b6ec2]"
+          data-testid="decision-options-group"
+        >
           <div className="blazor-card-header text-xs">
             Uygulanacak Mühendislik Komutunu Seçin
           </div>
@@ -245,7 +465,9 @@ export const IncidentStageView: React.FC<IncidentStageViewProps> = ({
                 key={opt.key}
                 type="button"
                 data-testid={`choice-btn-${opt.key}`}
-                onClick={() => onSelectChoice(opt.key, false)}
+                onMouseEnter={() => handleOptionHover(opt.key)}
+                onFocus={() => handleOptionHover(opt.key)}
+                onClick={() => handleCommitDecision(opt.key, false)}
                 className="w-full text-left border border-[#adb5bd] bg-[#ffffff] hover:bg-[#e7f1ff] hover:border-[#1b6ec2] p-3 rounded-[3px] transition-colors cursor-pointer space-y-1.5"
               >
                 <div className="flex items-center justify-between">

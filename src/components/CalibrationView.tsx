@@ -15,12 +15,16 @@ interface CalibrationViewProps {
   profile: CalibrationProfile;
   onChangeProfile: (updated: CalibrationProfile) => void;
   onStartIncident: () => void;
+  dataCollectionOnly?: boolean;
+  onToggleDataCollectionMode?: (enabled: boolean) => void;
 }
 
 export const CalibrationView: React.FC<CalibrationViewProps> = ({
   profile,
   onChangeProfile,
   onStartIncident,
+  dataCollectionOnly = false,
+  onToggleDataCollectionMode,
 }) => {
   const activeLevel = EXPERIENCE_LEVELS.find((l) => l.id === profile.level)!;
   const activeRole = ENGINEERING_ROLES.find((r) => r.id === profile.role)!;
@@ -43,6 +47,58 @@ export const CalibrationView: React.FC<CalibrationViewProps> = ({
           Dün gece yeni sürüm (v2.4.0) çıktı. Poliklinik girişinde <strong>300 hasta</strong> kayıt bekliyor.
           Aşağıdaki 3 oturum parametresini seçerek simülasyon anlatısını ve sistem kısıtlarını başlatın.
         </p>
+      </div>
+
+      {/* v2.0 Veri Toplama Modu & ONNX Davranışsal Telemetri Bilgi Kartı */}
+      <div
+        className="blazor-card border-t-[3px] border-t-[#198754]"
+        data-testid="data-collection-mode-card"
+      >
+        <div className="blazor-card-header flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`inline-block w-2 h-2 rounded-full ${
+                dataCollectionOnly ? 'bg-[#fd7e14]' : 'bg-[#198754]'
+              }`}
+            />
+            <span className="font-mono font-bold text-[#0f5132]">
+              {dataCollectionOnly
+                ? 'VERİ TOPLAMA MODU · MODEL KAPALI'
+                : 'VERİ TOPLAMA & ONNX UYUM MODU'}
+            </span>
+          </div>
+          {onToggleDataCollectionMode && (
+            <button
+              type="button"
+              data-testid="toggle-collection-mode-btn"
+              onClick={() => onToggleDataCollectionMode(!dataCollectionOnly)}
+              className="px-2 py-0.5 text-[10px] font-mono bg-[#e9ecef] hover:bg-[#dee2e6] text-[#212529] border border-[#ced4da] rounded-[2px] cursor-pointer"
+            >
+              {dataCollectionOnly ? 'ONNX Modeli Aç' : 'Salt Veri Toplama Modu'}
+            </button>
+          )}
+        </div>
+        <div className="p-3 space-y-2.5 text-xs text-[#212529]">
+          <p className="leading-normal">
+            <strong>Veri toplama modu.</strong> Seçimlerinin zamanlaması ve sırası (karar süresi, seçenekler arası tereddüt, log inceleme oranı) ödev için ölçülür.{' '}
+            <strong>Ad, e-posta, cihaz kimliği veya konum toplanmaz;</strong> sonuç yalnızca bu sayfada kalır ve nöbet sonunda sana <code>oturum.csv</code> olarak verilir.
+          </p>
+
+          <div className="grid grid-cols-3 gap-1.5 bg-[#f8f9fa] border border-[#dee2e6] p-2 rounded-[2px] text-center font-mono">
+            <div>
+              <div className="text-[10px] text-[#6c757d]">Ölçülen</div>
+              <div className="text-[11px] font-bold text-[#052767]">süre · tereddüt · log</div>
+            </div>
+            <div className="border-x border-[#dee2e6]">
+              <div className="text-[10px] text-[#6c757d]">Sahne</div>
+              <div className="text-[11px] font-bold text-[#052767]">3 kritik karar</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-[#6c757d]">Kayıt</div>
+              <div className="text-[11px] font-bold text-[#198754]">CSV, sende</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Form Panel 1: Deneyim Seviyesi */}

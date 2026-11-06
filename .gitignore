@@ -5,3 +5,8 @@ dist/
 cypress/screenshots/
 *.tsbuildinfo
 .DS_Store
+__pycache__/
+*.pyc
+public/ort/
+The Primer v2 - *.pdf
+YZM301_*.pdf

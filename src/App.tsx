@@ -12,8 +12,20 @@ import { buildDecisionOutcome } from './domain/incidentMatrix';
 import { CalibrationView } from './components/CalibrationView';
 import { IncidentStageView } from './components/IncidentStageView';
 import { PostMortemView } from './components/PostMortemView';
+import {
+  generateAnonymousSessionId,
+  SessionTelemetryRow,
+} from './services/onnxAdaptiveEngine';
 
 export function App() {
+  const [sessionId, setSessionId] = useState<string>(() =>
+    generateAnonymousSessionId()
+  );
+  const [sessionRows, setSessionRows] = useState<SessionTelemetryRow[]>([]);
+  const [dataCollectionOnly, setDataCollectionOnly] = useState<boolean>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('mode') === 'collect';
+  });
   const [machine, setMachine] = useState<PrimerMachineState>(() =>
     createInitialMachineState()
   );
@@ -26,6 +38,8 @@ export function App() {
   };
 
   const handleStartIncident = () => {
+    setSessionId(generateAnonymousSessionId());
+    setSessionRows([]);
     setMachine((prev) => ({
       ...prev,
       phase: 'S1_IN_PROGRESS',
@@ -37,7 +51,15 @@ export function App() {
     }));
   };
 
-  const handleSelectChoice = (chosenKey: ChoiceOptionKey, timedOut: boolean = false) => {
+  const handleSelectChoice = (
+    chosenKey: ChoiceOptionKey,
+    timedOut: boolean = false,
+    telemetryRow?: SessionTelemetryRow
+  ) => {
+    if (telemetryRow) {
+      setSessionRows((prev) => [...prev, telemetryRow]);
+    }
+
     setMachine((prev) => {
       if (prev.activeCausalReview) return prev;
       const stageId = STAGE_ORDER[prev.currentStageIndex];
@@ -56,7 +78,8 @@ export function App() {
           incidentClock: outcome.telemetryDelta.clockAfter,
           waitingPatients: outcome.telemetryDelta.waitingPatientsAfter,
           stabilityScore: outcome.telemetryDelta.stabilityScoreAfter,
-          kvkkCompliant: prev.telemetry.kvkkCompliant && !outcome.telemetryDelta.kvkkBreached,
+          kvkkCompliant:
+            prev.telemetry.kvkkCompliant && !outcome.telemetryDelta.kvkkBreached,
         },
       };
     });
@@ -89,6 +112,8 @@ export function App() {
   };
 
   const handleRestart = () => {
+    setSessionId(generateAnonymousSessionId());
+    setSessionRows([]);
     setMachine((prev) => createInitialMachineState(prev.profile));
   };
 
@@ -107,7 +132,7 @@ export function App() {
         <header className="blazor-top-row sticky top-0 z-30 px-3 py-2.5 text-white flex items-center justify-between">
           <div>
             <div className="text-sm font-bold tracking-tight">
-              HBYS.Web
+              HBYS.Web <span className="text-[11px] font-mono text-[#90caf9]">v2.0 · ONNX</span>
             </div>
             <div className="text-[11px] text-[#cfd8dc] font-mono">
               Modül: YZM301.KrizSimulasyonu
@@ -136,7 +161,7 @@ export function App() {
             <span>{currentBreadcrumb}</span>
           </div>
           <span className="font-mono text-[11px] text-[#495057]">
-            Durum: Aktif
+            {dataCollectionOnly ? 'Veri Toplama · Model Kapalı' : 'ONNX: Aktif'}
           </span>
         </div>
 
@@ -147,26 +172,33 @@ export function App() {
               profile={machine.profile}
               onChangeProfile={handleProfileChange}
               onStartIncident={handleStartIncident}
+              dataCollectionOnly={dataCollectionOnly}
+              onToggleDataCollectionMode={setDataCollectionOnly}
             />
           )}
 
           {machine.phase === 'S1_IN_PROGRESS' && (
             <IncidentStageView
+              sessionId={sessionId}
               stageId={STAGE_ORDER[machine.currentStageIndex]}
               profile={machine.profile}
               telemetry={machine.telemetry}
+              priorDecisions={machine.decisions}
               activeCausalReview={machine.activeCausalReview}
               onSelectChoice={handleSelectChoice}
               onProceedNextStage={handleProceedNextStage}
+              dataCollectionOnly={dataCollectionOnly}
             />
           )}
 
           {machine.phase === 'S2_EPILOGUE' && machine.ending && (
             <PostMortemView
+              sessionId={sessionId}
               ending={machine.ending}
               profile={machine.profile}
               decisions={machine.decisions}
               telemetry={machine.telemetry}
+              sessionRows={sessionRows}
               onRestart={handleRestart}
             />
           )}
@@ -174,7 +206,7 @@ export function App() {
 
         {/* Classic Blazor Server Status Footer */}
         <footer className="border-t border-[#ced4da] bg-[#ffffff] px-3 py-2 flex items-center justify-between text-[11px] text-[#6c757d] font-mono">
-          <span>HBYS.Randevu.Servis v2.4.0</span>
+          <span>HBYS.Randevu.Servis v2.0 (ONNX)</span>
           <span>6698 KVKK Denetim Modu</span>
         </footer>
       </div>

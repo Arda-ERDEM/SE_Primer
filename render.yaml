@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: se-primer-v2-onnx-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server/app.py --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: MODEL_DIR
+        value: model
